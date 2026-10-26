@@ -35,9 +35,97 @@ STEP-5: Display the obtained cipher text.
 
 
 Program:
+```
 
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+char table[5][5];
+
+void generateKey(char key[]) {
+    int used[26] = {0}, k = 0;
+    char s[100];
+
+    sprintf(s, "%sabcdefghijklmnopqrstuvwxyz", key);
+    used['j' - 'a'] = 1;
+
+    for (int i = 0; s[i]; i++) {
+        char c = tolower((unsigned char)s[i]);
+        if (c < 'a' || c > 'z') continue;
+        if (c == 'j') c = 'i';
+
+        if (!used[c - 'a']) {
+            table[k / 5][k % 5] = c;
+            used[c - 'a'] = 1;
+            k++;
+        }
+    }
+}
+
+void find(char c, int *r, int *col) {
+    if (c == 'j') c = 'i';
+
+    for (int i = 0; i < 5; i++)
+        for (int j = 0; j < 5; j++)
+            if (table[i][j] == c) {
+                *r = i;
+                *col = j;
+                return;
+            }
+}
+
+void encrypt(char text[]) {
+    int n = strlen(text);
+
+    for (int i = 0; i < n; i++)
+        text[i] = tolower((unsigned char)text[i]);
+
+    if (n % 2) {
+        text[n++] = 'z';
+        text[n] = '\0';
+    }
+
+    for (int i = 0; i < n; i += 2) {
+        int r1, c1, r2, c2;
+        find(text[i], &r1, &c1);
+        find(text[i + 1], &r2, &c2);
+
+        if (r1 == r2) {
+            c1 = (c1 + 1) % 5;
+            c2 = (c2 + 1) % 5;
+        } else if (c1 == c2) {
+            r1 = (r1 + 1) % 5;
+            r2 = (r2 + 1) % 5;
+        } else {
+            int t = c1;
+            c1 = c2;
+            c2 = t;
+        }
+
+        text[i] = table[r1][c1];
+        text[i + 1] = table[r2][c2];
+    }
+}
+
+int main() {
+    char key[] = "Simson";
+    char text[100] = "instruments";
+
+    printf("Key text: %s\n", key);
+    printf("Plain text: %s\n", text);
+
+    generateKey(key);
+    encrypt(text);
+
+    printf("Cipher text: %s\n", text);
+    return 0;
+}
+
+```
 
 
 
 
 Output:
+<img width="390" height="215" alt="image" src="https://github.com/user-attachments/assets/c4c8e04b-f28a-4ed3-a5d6-d1abcd5b051d" />
